@@ -446,7 +446,7 @@ select {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  min-height: 292px;
+  min-height: 430px;
   overflow-x: auto;
   border: 2px solid #ef4444;
   background: #fff;
@@ -455,9 +455,11 @@ select {
 
 .stock-chart-frame img {
   display: block;
-  width: 700px;
+  width: 100%;
+  min-width: 1180px;
   max-width: none;
-  height: auto;
+  height: 430px;
+  object-fit: fill;
 }
 
 @media (max-width: 900px) {
@@ -505,5 +507,14 @@ select {
 
   .stock-chart-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .stock-chart-frame {
+    min-height: 360px;
+  }
+
+  .stock-chart-frame img {
+    min-width: 980px;
+    height: 360px;
   }
 }

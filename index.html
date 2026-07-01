@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-    <script src="./script.js?v=20260702-stock-chart" defer></script>
+    <script src="./script.js?v=20260702-stock-chart-wide" defer></script>
   </head>
   <body>
     <header class="hero">
@@ -106,11 +106,11 @@
         </div>
         <div class="stock-chart-panel">
           <div class="stock-chart-toolbar" aria-label="주가 차트 기간 선택">
-            <span id="stockChartModeLabel">candle_day</span>
+            <span id="stockChartModeLabel">candle_month</span>
             <div class="stock-chart-buttons">
-              <button class="stock-chart-button is-active" type="button" data-chart="candle" data-time="day">일봉</button>
+              <button class="stock-chart-button" type="button" data-chart="candle" data-time="day">일봉</button>
               <button class="stock-chart-button" type="button" data-chart="candle" data-time="week">주봉</button>
-              <button class="stock-chart-button" type="button" data-chart="candle" data-time="month">월봉</button>
+              <button class="stock-chart-button is-active" type="button" data-chart="candle" data-time="month">월봉</button>
               <button class="stock-chart-button" type="button" data-chart="area" data-time="day">1일</button>
               <button class="stock-chart-button" type="button" data-chart="area" data-time="week">1주일</button>
               <button class="stock-chart-button" type="button" data-chart="area" data-time="month3">3개월</button>
@@ -121,7 +121,7 @@
             </div>
           </div>
           <div class="stock-chart-frame">
-            <img id="stockChartImage" src="https://ssl.pstatic.net/imgfinance/chart/item/candle/day/001680.png" alt="대상 주가 차트" />
+            <img id="stockChartImage" src="https://ssl.pstatic.net/imgfinance/chart/item/candle/month/001680.png" alt="대상 주가 차트" />
           </div>
         </div>
       </section>

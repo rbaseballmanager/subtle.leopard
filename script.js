@@ -42,7 +42,7 @@ const state = {
   activeSuggestionIndex: -1,
   stockChart: {
     chart: "candle",
-    time: "day",
+    time: "month",
   },
   chart: null,
 };
