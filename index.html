@@ -22,9 +22,16 @@
           </div>
         </div>
         <form id="searchForm" class="search-panel">
+          <div class="field field--name">
+            <label for="companySearchInput">종목명</label>
+            <div class="autocomplete">
+              <input id="companySearchInput" type="text" value="대상" placeholder="예: 코오롱" autocomplete="off" aria-autocomplete="list" aria-expanded="false" />
+              <div id="companySuggestions" class="suggestions" role="listbox"></div>
+            </div>
+          </div>
           <label class="field field--stock">
             <span>종목코드</span>
-            <input id="stockCodeInput" type="text" inputmode="numeric" maxlength="6" value="001680" placeholder="예: 001680" />
+            <input id="stockCodeInput" type="text" inputmode="numeric" maxlength="6" value="001680" placeholder="자동입력" readonly />
           </label>
           <label class="field field--select">
             <span>재무제표 구분</span>
@@ -45,7 +52,7 @@
         <div id="companyName" class="ticker-cell ticker-cell--value">대상</div>
         <div class="ticker-cell ticker-cell--label">종목코드</div>
         <div id="companyCode" class="ticker-cell ticker-cell--code">001680</div>
-        <div id="statusText" class="ticker-cell ticker-cell--status">종목코드를 입력한 뒤 조회하세요.</div>
+        <div id="statusText" class="ticker-cell ticker-cell--status">종목명을 입력한 뒤 조회하세요.</div>
       </section>
 
       <section class="sheet-section">

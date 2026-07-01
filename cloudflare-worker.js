@@ -1,10 +1,13 @@
-const ALLOWED_ORIGIN = "https://rbaseballmanager.github.io";
+const ALLOWED_ORIGINS = new Set(["https://rbaseballmanager.github.io", "http://localhost:4173", "http://127.0.0.1:4173"]);
 const OPEN_DART_ORIGIN = "https://opendart.fss.or.kr";
 
 export default {
   async fetch(request, env) {
+    const origin = request.headers.get("Origin") || "";
+    const allowedOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "https://rbaseballmanager.github.io";
     const corsHeaders = {
-      "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+      "Access-Control-Allow-Origin": allowedOrigin,
+      "Vary": "Origin",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",

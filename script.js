@@ -34,6 +34,9 @@ const ACCOUNT_ALIASES = {
 
 const state = {
   corpList: null,
+  selectedCompany: null,
+  suggestions: [],
+  activeSuggestionIndex: -1,
   chart: null,
 };
 
@@ -41,6 +44,8 @@ const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   els.form = document.querySelector("#searchForm");
+  els.companySearchInput = document.querySelector("#companySearchInput");
+  els.companySuggestions = document.querySelector("#companySuggestions");
   els.stockCodeInput = document.querySelector("#stockCodeInput");
   els.fsModeInput = document.querySelector("#fsModeInput");
   els.companyName = document.querySelector("#companyName");
@@ -51,23 +56,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderEmptyTable(buildPeriods());
   renderChart(buildPeriods(), []);
+  state.selectedCompany = { name: "대상", stockCode: "001680" };
 
   els.form.addEventListener("submit", async (event) => {
     event.preventDefault();
     await handleSearch();
   });
+
+  els.companySearchInput.addEventListener("input", handleCompanySearchInput);
+  els.companySearchInput.addEventListener("focus", handleCompanySearchFocus);
+  els.companySearchInput.addEventListener("keydown", handleCompanySearchKeydown);
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".autocomplete")) {
+      closeSuggestions();
+    }
+  });
 });
 
 async function handleSearch() {
-  const stockCode = normalizeStockCode(els.stockCodeInput.value);
   const fsMode = els.fsModeInput.value;
   const proxyUrl = getOpenDartProxyUrl();
-
-  if (!stockCode) {
-    setStatus("종목코드가 비어 있습니다. 6자리 종목코드를 입력하세요.", true);
-    els.stockCodeInput.focus();
-    return;
-  }
 
   if (!proxyUrl) {
     setStatus("OpenDART 프록시 주소가 비어 있습니다. script.js의 OPEN_DART_PROXY_URL에 Cloudflare Worker 주소를 입력하세요.", true);
@@ -79,15 +87,21 @@ async function handleSearch() {
     return;
   }
 
+  const company = await resolveSelectedCompany();
+  const stockCode = company?.stockCode || normalizeStockCode(els.stockCodeInput.value);
+
+  if (!stockCode) {
+    setStatus("종목명을 검색해 목록에서 선택하세요.", true);
+    els.companySearchInput.focus();
+    return;
+  }
+
   setLoading(true);
   setStatus("회사 고유번호를 조회하고 있습니다...");
 
   try {
-    const corpList = await getCorpList();
-    const company = corpList.find((corp) => corp.stockCode === stockCode);
-
     if (!company) {
-      throw new UserFacingError("종목코드에 해당하는 회사 정보를 찾을 수 없습니다.");
+      throw new UserFacingError("종목명에 해당하는 회사 정보를 찾을 수 없습니다.");
     }
 
     els.companyName.textContent = company.name;
@@ -103,7 +117,7 @@ async function handleSearch() {
     renderChart(periods, data);
 
     if (data.every((item) => item.missing)) {
-      throw new UserFacingError("재무제표 데이터가 없습니다. API Key, 종목코드, 보고서 제출 여부를 확인하세요.");
+      throw new UserFacingError("재무제표 데이터가 없습니다. API Key, 종목명, 보고서 제출 여부를 확인하세요.");
     }
 
     setStatus(missing > 0 ? `조회 완료. 일부 분기 데이터 ${missing}개가 누락되었습니다.` : "조회 완료.");
@@ -117,6 +131,163 @@ async function handleSearch() {
   } finally {
     setLoading(false);
   }
+}
+
+async function handleCompanySearchInput() {
+  state.selectedCompany = null;
+  els.stockCodeInput.value = "";
+  await updateCompanySuggestions(els.companySearchInput.value);
+}
+
+async function handleCompanySearchFocus() {
+  await updateCompanySuggestions(els.companySearchInput.value);
+}
+
+function handleCompanySearchKeydown(event) {
+  if (!state.suggestions.length || !els.companySuggestions.classList.contains("is-open")) {
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    setActiveSuggestion(Math.min(state.activeSuggestionIndex + 1, state.suggestions.length - 1));
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    setActiveSuggestion(Math.max(state.activeSuggestionIndex - 1, 0));
+  }
+
+  if (event.key === "Enter" && state.activeSuggestionIndex >= 0) {
+    event.preventDefault();
+    selectCompany(state.suggestions[state.activeSuggestionIndex]);
+    els.form.requestSubmit();
+  }
+
+  if (event.key === "Escape") {
+    closeSuggestions();
+  }
+}
+
+async function updateCompanySuggestions(query) {
+  const keyword = normalizeSearchText(query);
+
+  if (!keyword) {
+    closeSuggestions();
+    return;
+  }
+
+  try {
+    setStatus("종목 목록을 불러오고 있습니다...");
+    const corpList = await getCorpList();
+    state.suggestions = corpList
+      .filter((corp) => normalizeSearchText(corp.name).includes(keyword) || corp.stockCode.includes(keyword))
+      .sort((a, b) => rankCompany(a, keyword) - rankCompany(b, keyword) || a.name.localeCompare(b.name, "ko"))
+      .slice(0, 12);
+    state.activeSuggestionIndex = state.suggestions.length ? 0 : -1;
+    renderCompanySuggestions();
+    setStatus("종목명을 선택하거나 조회하세요.");
+  } catch (error) {
+    console.error(error);
+    setStatus("종목 목록을 불러오지 못했습니다. OpenDART 프록시 설정을 확인하세요.", true);
+  }
+}
+
+function renderCompanySuggestions() {
+  els.companySuggestions.innerHTML = "";
+
+  if (!state.suggestions.length) {
+    els.companySuggestions.innerHTML = '<div class="suggestion-empty">검색 결과가 없습니다.</div>';
+    openSuggestions();
+    return;
+  }
+
+  state.suggestions.forEach((company, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `suggestion-item${index === state.activeSuggestionIndex ? " is-active" : ""}`;
+    button.setAttribute("role", "option");
+    button.innerHTML = `<strong>${escapeHtml(company.name)}</strong><span>${company.stockCode}</span>`;
+    button.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+      selectCompany(company);
+    });
+    els.companySuggestions.append(button);
+  });
+
+  openSuggestions();
+}
+
+function selectCompany(company) {
+  state.selectedCompany = company;
+  els.companySearchInput.value = company.name;
+  els.stockCodeInput.value = company.stockCode;
+  els.companyName.textContent = company.name;
+  els.companyCode.textContent = company.stockCode;
+  closeSuggestions();
+  setStatus(`${company.name} 선택됨. 조회 버튼을 누르세요.`);
+}
+
+async function resolveSelectedCompany() {
+  if (state.selectedCompany?.stockCode) {
+    return state.selectedCompany;
+  }
+
+  const keyword = normalizeSearchText(els.companySearchInput.value);
+  const stockCode = normalizeStockCode(els.stockCodeInput.value);
+  const corpList = await getCorpList();
+  const company =
+    corpList.find((corp) => normalizeSearchText(corp.name) === keyword) ||
+    corpList.find((corp) => corp.stockCode === stockCode) ||
+    corpList
+      .filter((corp) => normalizeSearchText(corp.name).includes(keyword))
+      .sort((a, b) => rankCompany(a, keyword) - rankCompany(b, keyword))[0];
+
+  if (company) {
+    selectCompany(company);
+  }
+
+  return company;
+}
+
+function openSuggestions() {
+  els.companySuggestions.classList.add("is-open");
+  els.companySearchInput.setAttribute("aria-expanded", "true");
+}
+
+function closeSuggestions() {
+  els.companySuggestions.classList.remove("is-open");
+  els.companySearchInput.setAttribute("aria-expanded", "false");
+  state.activeSuggestionIndex = -1;
+}
+
+function setActiveSuggestion(index) {
+  state.activeSuggestionIndex = index;
+  [...els.companySuggestions.querySelectorAll(".suggestion-item")].forEach((item, itemIndex) => {
+    item.classList.toggle("is-active", itemIndex === index);
+  });
+}
+
+function normalizeSearchText(value) {
+  return String(value || "").replace(/\s+/g, "").toLowerCase();
+}
+
+function rankCompany(company, keyword) {
+  const name = normalizeSearchText(company.name);
+  if (name === keyword) return 0;
+  if (name.startsWith(keyword)) return 1;
+  if (name.includes(keyword)) return 2;
+  if (company.stockCode.startsWith(keyword)) return 3;
+  return 4;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function normalizeStockCode(value) {
