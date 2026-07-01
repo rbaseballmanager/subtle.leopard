@@ -1,6 +1,6 @@
 // OpenDART API Key는 프론트엔드에 두지 않는다.
 // Cloudflare Worker Secret에 저장하고 Worker가 OpenDART 요청에 crtfc_key를 붙인다.
-const OPEN_DART_PROXY_URL = "";
+const OPEN_DART_PROXY_URL = "https://opendart-proxy.buttea.workers.dev/?url=";
 const LOCAL_OPEN_DART_PROXY_URL = "http://localhost:8787/?url=";
 
 const REPORTS = [
@@ -61,10 +61,21 @@ document.addEventListener("DOMContentLoaded", () => {
 async function handleSearch() {
   const stockCode = normalizeStockCode(els.stockCodeInput.value);
   const fsMode = els.fsModeInput.value;
+  const proxyUrl = getOpenDartProxyUrl();
 
   if (!stockCode) {
     setStatus("종목코드가 비어 있습니다. 6자리 종목코드를 입력하세요.", true);
     els.stockCodeInput.focus();
+    return;
+  }
+
+  if (!proxyUrl) {
+    setStatus("OpenDART 프록시 주소가 비어 있습니다. script.js의 OPEN_DART_PROXY_URL에 Cloudflare Worker 주소를 입력하세요.", true);
+    return;
+  }
+
+  if (proxyUrl.includes("xxxxx")) {
+    setStatus("OpenDART 프록시 주소가 예시값입니다. 실제 Cloudflare Worker 주소로 바꿔주세요.", true);
     return;
   }
 
@@ -319,7 +330,7 @@ async function fetchOpenDart(url) {
 }
 
 function getOpenDartProxyUrl() {
-  if (OPEN_DART_PROXY_URL) {
+  if (OPEN_DART_PROXY_URL && !OPEN_DART_PROXY_URL.includes("xxxxx")) {
     return OPEN_DART_PROXY_URL;
   }
 
