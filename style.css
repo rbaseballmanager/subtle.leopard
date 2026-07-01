@@ -84,13 +84,14 @@ select {
 }
 
 .search-panel {
+  position: relative;
   display: grid;
-  grid-template-columns: 320px 150px 130px 108px;
-  gap: 10px;
+  grid-template-columns: 360px 160px 160px 112px;
+  gap: 16px;
   align-items: end;
   width: max-content;
   margin-top: 36px;
-  padding: 12px;
+  padding: 38px 14px 14px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.12);
 }
@@ -98,6 +99,7 @@ select {
 .field {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .field span,
@@ -109,6 +111,7 @@ select {
 
 .field input,
 .field select {
+  width: 100%;
   height: 38px;
   border: 2px solid #0f172a;
   padding: 0 12px;
@@ -193,7 +196,7 @@ select {
   font-size: 13px;
 }
 
-.search-panel button {
+.search-button {
   height: 38px;
   border: 2px solid #0f172a;
   background: var(--navy);
@@ -202,8 +205,32 @@ select {
   cursor: pointer;
 }
 
-.search-panel button:hover {
+.search-button:hover {
   background: #174a86;
+}
+
+.refresh-corp-button {
+  position: absolute;
+  top: 9px;
+  right: 14px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.16);
+  color: #e8f0ff;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.refresh-corp-button:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.refresh-corp-button:disabled,
+.search-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .workspace {

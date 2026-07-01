@@ -2,6 +2,8 @@
 // Cloudflare Worker Secret에 저장하고 Worker가 OpenDART 요청에 crtfc_key를 붙인다.
 const OPEN_DART_PROXY_URL = "https://opendart-proxy.buttea.workers.dev/?url=";
 const LOCAL_OPEN_DART_PROXY_URL = "http://localhost:8787/?url=";
+const CORP_LIST_CACHE_KEY = "subtleLeopard.corpList.v1";
+const CORP_LIST_CACHE_DATE_KEY = "subtleLeopard.corpListUpdatedAt.v1";
 
 const REPORTS = [
   { quarter: "1Q", code: "11013", cumulativeBase: null },
@@ -44,6 +46,8 @@ const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   els.form = document.querySelector("#searchForm");
+  els.searchButton = document.querySelector("#searchButton");
+  els.refreshCorpListButton = document.querySelector("#refreshCorpListButton");
   els.companySearchInput = document.querySelector("#companySearchInput");
   els.companySuggestions = document.querySelector("#companySuggestions");
   els.stockCodeInput = document.querySelector("#stockCodeInput");
@@ -56,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderEmptyTable(buildPeriods());
   renderChart(buildPeriods(), []);
+  loadCorpListFromCache();
   state.selectedCompany = { name: "대상", stockCode: "001680" };
 
   els.form.addEventListener("submit", async (event) => {
@@ -63,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await handleSearch();
   });
 
+  els.refreshCorpListButton.addEventListener("click", refreshCorpList);
   els.companySearchInput.addEventListener("input", handleCompanySearchInput);
   els.companySearchInput.addEventListener("focus", handleCompanySearchFocus);
   els.companySearchInput.addEventListener("keydown", handleCompanySearchKeydown);
@@ -178,7 +184,9 @@ async function updateCompanySuggestions(query) {
   }
 
   try {
-    setStatus("종목 목록을 불러오고 있습니다...");
+    if (!state.corpList) {
+      setStatus("종목 목록을 불러오고 있습니다...");
+    }
     const corpList = await getCorpList();
     state.suggestions = corpList
       .filter((corp) => normalizeSearchText(corp.name).includes(keyword) || corp.stockCode.includes(keyword))
@@ -190,6 +198,25 @@ async function updateCompanySuggestions(query) {
   } catch (error) {
     console.error(error);
     setStatus("종목 목록을 불러오지 못했습니다. OpenDART 프록시 설정을 확인하세요.", true);
+  }
+}
+
+async function refreshCorpList() {
+  const previousText = els.refreshCorpListButton.textContent;
+  els.refreshCorpListButton.disabled = true;
+  els.refreshCorpListButton.textContent = "업데이트중";
+  setStatus("OpenDART에서 종목 목록을 새로 받고 있습니다...");
+
+  try {
+    const corpList = await getCorpList({ forceRefresh: true });
+    await updateCompanySuggestions(els.companySearchInput.value);
+    setStatus(`종목명 업데이트 완료: ${formatNumber(corpList.length)}개 종목 저장됨.`);
+  } catch (error) {
+    console.error(error);
+    setStatus("종목명 업데이트에 실패했습니다. Worker와 네트워크 상태를 확인하세요.", true);
+  } finally {
+    els.refreshCorpListButton.disabled = false;
+    els.refreshCorpListButton.textContent = previousText;
   }
 }
 
@@ -301,9 +328,16 @@ function buildPeriods() {
   return years.flatMap((year) => REPORTS.map((report) => ({ year, quarter: report.quarter, reportCode: report.code })));
 }
 
-async function getCorpList(apiKey) {
-  if (state.corpList) {
+async function getCorpList(options = {}) {
+  if (state.corpList && !options.forceRefresh) {
     return state.corpList;
+  }
+
+  if (!options.forceRefresh) {
+    const cached = loadCorpListFromCache();
+    if (cached) {
+      return cached;
+    }
   }
 
   const arrayBuffer = await fetchArrayBuffer("https://opendart.fss.or.kr/api/corpCode.xml");
@@ -330,7 +364,38 @@ async function getCorpList(apiKey) {
     }))
     .filter((corp) => corp.corpCode && corp.stockCode);
 
+  saveCorpListToCache(state.corpList);
   return state.corpList;
+}
+
+function loadCorpListFromCache() {
+  try {
+    const cached = localStorage.getItem(CORP_LIST_CACHE_KEY);
+    if (!cached) {
+      return null;
+    }
+
+    const corpList = JSON.parse(cached);
+    if (!Array.isArray(corpList) || !corpList.length) {
+      return null;
+    }
+
+    state.corpList = corpList;
+    return state.corpList;
+  } catch (error) {
+    localStorage.removeItem(CORP_LIST_CACHE_KEY);
+    localStorage.removeItem(CORP_LIST_CACHE_DATE_KEY);
+    return null;
+  }
+}
+
+function saveCorpListToCache(corpList) {
+  try {
+    localStorage.setItem(CORP_LIST_CACHE_KEY, JSON.stringify(corpList));
+    localStorage.setItem(CORP_LIST_CACHE_DATE_KEY, new Date().toISOString());
+  } catch (error) {
+    console.warn("종목 목록 캐시 저장 실패", error);
+  }
 }
 
 async function fetchFinancialRows(corpCode, periods, fsMode) {
@@ -679,9 +744,8 @@ function setStatus(message, isError = false) {
 }
 
 function setLoading(isLoading) {
-  const button = els.form.querySelector("button");
-  button.disabled = isLoading;
-  button.textContent = isLoading ? "조회중" : "조회";
+  els.searchButton.disabled = isLoading;
+  els.searchButton.textContent = isLoading ? "조회중" : "조회";
 }
 
 class UserFacingError extends Error {}

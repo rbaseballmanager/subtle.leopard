@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
-    <script src="./script.js?v=20260702-autocomplete" defer></script>
+    <script src="./script.js?v=20260702-company-cache" defer></script>
   </head>
   <body>
     <header class="hero">
@@ -22,6 +22,7 @@
           </div>
         </div>
         <form id="searchForm" class="search-panel">
+          <button id="refreshCorpListButton" class="refresh-corp-button" type="button">종목명 업데이트</button>
           <div class="field field--name">
             <label for="companySearchInput">종목명</label>
             <div class="autocomplete">
@@ -41,7 +42,7 @@
               <option value="OFS">개별</option>
             </select>
           </label>
-          <button type="submit">조회</button>
+          <button id="searchButton" class="search-button" type="submit">조회</button>
         </form>
       </div>
     </header>
