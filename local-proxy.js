@@ -3,6 +3,7 @@ const { URL } = require("node:url");
 
 const PORT = 8787;
 const OPEN_DART_ORIGIN = "https://opendart.fss.or.kr";
+const OPEN_DART_API_KEY = process.env.OPEN_DART_API_KEY || "";
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -24,6 +25,14 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ error: "Only OpenDART API requests are allowed." }));
       return;
     }
+
+    if (!OPEN_DART_API_KEY) {
+      res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ error: "OPEN_DART_API_KEY environment variable is required." }));
+      return;
+    }
+
+    target.searchParams.set("crtfc_key", OPEN_DART_API_KEY);
 
     const upstream = await fetch(target);
     const contentType = upstream.headers.get("content-type") || "application/octet-stream";

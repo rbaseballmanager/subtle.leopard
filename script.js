@@ -1,9 +1,5 @@
-// 주의:
-// 현재는 테스트 편의를 위해 OpenDART API Key를 프론트엔드 코드에 직접 입력한다.
-// GitHub Pages에 배포하면 API Key가 외부에 노출된다.
-// 실제 운영 시에는 Cloudflare Worker, 서버 프록시, GitHub Actions Secret 등의 방식으로 API Key를 숨겨야 한다.
-const OPEN_DART_API_KEY = "";
-// OpenDART가 브라우저 CORS 정책에 막히는 환경에서는 본인 소유 프록시 URL을 넣는다.
+// OpenDART API Key는 프론트엔드에 두지 않는다.
+// Cloudflare Worker Secret에 저장하고 Worker가 OpenDART 요청에 crtfc_key를 붙인다.
 const OPEN_DART_PROXY_URL = "";
 const LOCAL_OPEN_DART_PROXY_URL = "http://localhost:8787/?url=";
 
@@ -47,14 +43,12 @@ document.addEventListener("DOMContentLoaded", () => {
   els.form = document.querySelector("#searchForm");
   els.stockCodeInput = document.querySelector("#stockCodeInput");
   els.fsModeInput = document.querySelector("#fsModeInput");
-  els.apiKeyInput = document.querySelector("#apiKeyInput");
   els.companyName = document.querySelector("#companyName");
   els.companyCode = document.querySelector("#companyCode");
   els.statusText = document.querySelector("#statusText");
   els.table = document.querySelector("#financialTable");
   els.chartCanvas = document.querySelector("#financialChart");
 
-  els.apiKeyInput.value = OPEN_DART_API_KEY;
   renderEmptyTable(buildPeriods());
   renderChart(buildPeriods(), []);
 
@@ -65,15 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function handleSearch() {
-  const apiKey = (els.apiKeyInput.value || OPEN_DART_API_KEY).trim();
   const stockCode = normalizeStockCode(els.stockCodeInput.value);
   const fsMode = els.fsModeInput.value;
-
-  if (!apiKey) {
-    setStatus("API Key가 비어 있습니다. OpenDART API Key를 입력하세요.", true);
-    els.apiKeyInput.focus();
-    return;
-  }
 
   if (!stockCode) {
     setStatus("종목코드가 비어 있습니다. 6자리 종목코드를 입력하세요.", true);
@@ -85,7 +72,7 @@ async function handleSearch() {
   setStatus("회사 고유번호를 조회하고 있습니다...");
 
   try {
-    const corpList = await getCorpList(apiKey);
+    const corpList = await getCorpList();
     const company = corpList.find((corp) => corp.stockCode === stockCode);
 
     if (!company) {
@@ -97,7 +84,7 @@ async function handleSearch() {
     setStatus(`${company.name} 재무제표를 조회하고 있습니다...`);
 
     const periods = buildPeriods();
-    const rowsByPeriod = await fetchFinancialRows(apiKey, company.corpCode, periods, fsMode);
+    const rowsByPeriod = await fetchFinancialRows(company.corpCode, periods, fsMode);
     const data = buildQuarterlyFinancials(periods, rowsByPeriod);
     const missing = data.filter((item) => item.missing).length;
 
@@ -137,9 +124,7 @@ async function getCorpList(apiKey) {
     return state.corpList;
   }
 
-  const arrayBuffer = await fetchArrayBuffer(
-    `https://opendart.fss.or.kr/api/corpCode.xml?crtfc_key=${encodeURIComponent(apiKey)}`,
-  );
+  const arrayBuffer = await fetchArrayBuffer("https://opendart.fss.or.kr/api/corpCode.xml");
   const zip = await JSZip.loadAsync(arrayBuffer);
   const xmlFile = zip.file("CORPCODE.xml") || zip.file("corpCode.xml") || Object.values(zip.files)[0];
 
@@ -166,26 +151,25 @@ async function getCorpList(apiKey) {
   return state.corpList;
 }
 
-async function fetchFinancialRows(apiKey, corpCode, periods, fsMode) {
+async function fetchFinancialRows(corpCode, periods, fsMode) {
   const rowsByPeriod = new Map();
 
   for (const period of periods) {
     const rows =
       fsMode === "AUTO"
         ? [
-            ...(await fetchSingleFinancialReport(apiKey, corpCode, period, "CFS")),
-            ...(await fetchSingleFinancialReport(apiKey, corpCode, period, "OFS")),
+            ...(await fetchSingleFinancialReport(corpCode, period, "CFS")),
+            ...(await fetchSingleFinancialReport(corpCode, period, "OFS")),
           ]
-        : await fetchSingleFinancialReport(apiKey, corpCode, period, fsMode);
+        : await fetchSingleFinancialReport(corpCode, period, fsMode);
     rowsByPeriod.set(periodKey(period), rows);
   }
 
   return rowsByPeriod;
 }
 
-async function fetchSingleFinancialReport(apiKey, corpCode, period, fsDiv) {
+async function fetchSingleFinancialReport(corpCode, period, fsDiv) {
   const url = new URL("https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json");
-  url.searchParams.set("crtfc_key", apiKey);
   url.searchParams.set("corp_code", corpCode);
   url.searchParams.set("bsns_year", String(period.year));
   url.searchParams.set("reprt_code", period.reportCode);
