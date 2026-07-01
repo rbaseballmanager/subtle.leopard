@@ -1,6 +1,6 @@
 // OpenDART API Key는 프론트엔드에 두지 않는다.
 // Cloudflare Worker Secret에 저장하고 Worker가 OpenDART 요청에 crtfc_key를 붙인다.
-const OPEN_DART_PROXY_URL = "https://opendart-proxy.xxxxx.workers.dev/?url=";
+const OPEN_DART_PROXY_URL = "https://opendart-proxy.buttea.workers.dev/?url=";
 const LOCAL_OPEN_DART_PROXY_URL = "http://localhost:8787/?url=";
 
 const REPORTS = [
