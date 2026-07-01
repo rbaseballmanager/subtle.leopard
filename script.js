@@ -4,6 +4,7 @@ const OPEN_DART_PROXY_URL = "https://opendart-proxy.buttea.workers.dev/?url=";
 const LOCAL_OPEN_DART_PROXY_URL = "http://localhost:8787/?url=";
 const CORP_LIST_CACHE_KEY = "subtleLeopard.corpList.v1";
 const CORP_LIST_CACHE_DATE_KEY = "subtleLeopard.corpListUpdatedAt.v1";
+const NAVER_STOCK_CHART_BASE_URL = "https://ssl.pstatic.net/imgfinance/chart/item";
 
 const REPORTS = [
   { quarter: "1Q", code: "11013", cumulativeBase: null },
@@ -39,6 +40,10 @@ const state = {
   selectedCompany: null,
   suggestions: [],
   activeSuggestionIndex: -1,
+  stockChart: {
+    chart: "candle",
+    time: "day",
+  },
   chart: null,
 };
 
@@ -57,11 +62,16 @@ document.addEventListener("DOMContentLoaded", () => {
   els.statusText = document.querySelector("#statusText");
   els.table = document.querySelector("#financialTable");
   els.chartCanvas = document.querySelector("#financialChart");
+  els.stockChartImage = document.querySelector("#stockChartImage");
+  els.stockChartModeLabel = document.querySelector("#stockChartModeLabel");
+  els.stockChartCaption = document.querySelector("#stockChartCaption");
+  els.stockChartButtons = [...document.querySelectorAll(".stock-chart-button")];
 
   renderEmptyTable(buildPeriods());
   renderChart(buildPeriods(), []);
   loadCorpListFromCache();
   state.selectedCompany = { name: "대상", stockCode: "001680" };
+  updateStockChart();
 
   els.form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -76,6 +86,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!event.target.closest(".autocomplete")) {
       closeSuggestions();
     }
+  });
+  els.stockChartButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.stockChart.chart = button.dataset.chart;
+      state.stockChart.time = button.dataset.time;
+      updateStockChart();
+    });
   });
 });
 
@@ -251,6 +268,7 @@ function selectCompany(company) {
   els.stockCodeInput.value = company.stockCode;
   els.companyName.textContent = company.name;
   els.companyCode.textContent = company.stockCode;
+  updateStockChart();
   closeSuggestions();
   setStatus(`${company.name} 선택됨. 조회 버튼을 누르세요.`);
 }
@@ -699,6 +717,22 @@ function renderChart(periods, data) {
         },
       },
     },
+  });
+}
+
+function updateStockChart() {
+  const stockCode = normalizeStockCode(els.stockCodeInput.value || state.selectedCompany?.stockCode || "001680");
+  const companyName = els.companySearchInput.value || state.selectedCompany?.name || "선택 종목";
+  const chart = state.stockChart.chart;
+  const time = state.stockChart.time;
+  const url = `${NAVER_STOCK_CHART_BASE_URL}/${chart}/${time}/${stockCode}.png`;
+
+  els.stockChartImage.src = `${url}?${Date.now()}`;
+  els.stockChartImage.alt = `${companyName} ${stockCode} 주가 차트`;
+  els.stockChartModeLabel.textContent = `${chart}_${time}`;
+  els.stockChartCaption.textContent = `${companyName} ${stockCode}`;
+  els.stockChartButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.chart === chart && button.dataset.time === time);
   });
 }
 

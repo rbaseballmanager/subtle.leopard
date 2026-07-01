@@ -283,7 +283,8 @@ select {
 }
 
 .sheet-section,
-.chart-section {
+.chart-section,
+.stock-chart-section {
   padding: 0 0 18px;
 }
 
@@ -398,6 +399,67 @@ select {
   height: 100%;
 }
 
+.stock-chart-panel {
+  padding: 12px 20px 20px;
+  background: #fff;
+}
+
+.stock-chart-toolbar {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#stockChartModeLabel {
+  color: #111827;
+  font-size: 14px;
+}
+
+.stock-chart-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stock-chart-button {
+  min-width: 64px;
+  height: 30px;
+  border: 1px solid #aeb4bd;
+  border-right-color: #555;
+  border-bottom-color: #555;
+  background: #f4f4f4;
+  color: #111827;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.stock-chart-button:hover,
+.stock-chart-button.is-active {
+  background: #e3edf9;
+  border-color: #3b82f6;
+  font-weight: 800;
+}
+
+.stock-chart-frame {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-height: 292px;
+  overflow-x: auto;
+  border: 2px solid #ef4444;
+  background: #fff;
+  padding: 0;
+}
+
+.stock-chart-frame img {
+  display: block;
+  width: 700px;
+  max-width: none;
+  height: auto;
+}
+
 @media (max-width: 900px) {
   body {
     min-width: 0;
@@ -435,5 +497,13 @@ select {
   .chart-frame {
     height: 360px;
     margin: 12px 8px 0;
+  }
+
+  .stock-chart-panel {
+    padding: 10px 8px 16px;
+  }
+
+  .stock-chart-toolbar {
+    grid-template-columns: 1fr;
   }
 }
