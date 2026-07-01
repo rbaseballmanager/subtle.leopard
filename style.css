@@ -1,0 +1,344 @@
+:root {
+  color-scheme: light;
+  --navy: #001f4e;
+  --navy-2: #09315f;
+  --sky: #dff7ff;
+  --grid: #b7c3cc;
+  --line: #7c8794;
+  --paper: #f7f8fa;
+  --peach: #ffd9b6;
+  --yellow: #fff400;
+  --ink: #111827;
+  --muted: #5f6875;
+  --red: #e03a2f;
+  --blue: #1f72d8;
+  --green: #2f9b57;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 1180px;
+  background: #edf1f5;
+  color: var(--ink);
+  font-family: Arial, "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.hero {
+  position: relative;
+  min-height: 252px;
+  overflow: hidden;
+  background: var(--navy);
+}
+
+.hero__image {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 24, 58, 0.92) 0%, rgba(0, 31, 78, 0.72) 42%, rgba(0, 31, 78, 0.2) 100%),
+    url("./leopard.jpg") center right / cover no-repeat;
+}
+
+.hero__content {
+  position: relative;
+  width: min(1540px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 28px 0 34px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #fff;
+}
+
+.brand__logo {
+  width: 116px;
+  height: 76px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  object-fit: cover;
+}
+
+.brand__eyebrow,
+.brand__tagline {
+  margin: 0;
+  color: #dbeafe;
+  font-weight: 700;
+}
+
+.brand h1 {
+  margin: 3px 0 1px;
+  font-size: 42px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.search-panel {
+  display: grid;
+  grid-template-columns: 210px 130px 420px 108px;
+  gap: 10px;
+  align-items: end;
+  width: max-content;
+  margin-top: 36px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field span {
+  color: #e8f0ff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  height: 38px;
+  border: 2px solid #0f172a;
+  padding: 0 12px;
+  outline: none;
+  background: #fff;
+}
+
+.field select {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.field--stock input {
+  background: var(--yellow);
+  text-align: center;
+  font-weight: 800;
+}
+
+.search-panel button {
+  height: 38px;
+  border: 2px solid #0f172a;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.search-panel button:hover {
+  background: #174a86;
+}
+
+.workspace {
+  width: min(1540px, calc(100% - 24px));
+  margin: 12px auto 36px;
+  border: 1px solid #8b949e;
+  background: #fff;
+}
+
+.ticker-strip {
+  display: grid;
+  grid-template-columns: 130px 260px 130px 260px 1fr;
+  min-height: 36px;
+  border-bottom: 2px solid #0f172a;
+}
+
+.ticker-cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-right: 1px solid #0f172a;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.ticker-cell--label {
+  justify-content: center;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 800;
+}
+
+.ticker-cell--value {
+  justify-content: center;
+  background: #f8fafc;
+  font-weight: 800;
+}
+
+.ticker-cell--code {
+  justify-content: center;
+  background: var(--yellow);
+  font-weight: 900;
+}
+
+.ticker-cell--status {
+  border-right: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sheet-section,
+.chart-section {
+  padding: 0 0 18px;
+}
+
+.section-bar {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  height: 34px;
+  border-bottom: 1px solid #0f172a;
+  background: var(--sky);
+  padding: 0 12px;
+}
+
+.section-bar h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.section-bar span {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section-bar--chart {
+  border-top: 2px solid #0f172a;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background:
+    linear-gradient(#fff 31px, transparent 32px) 0 0 / 100% 32px,
+    linear-gradient(90deg, rgba(15, 23, 42, 0.08) 1px, transparent 1px) 0 0 / 72px 100%;
+}
+
+.financial-table {
+  min-width: 1480px;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+.financial-table th,
+.financial-table td {
+  height: 32px;
+  border-right: 1px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+
+.financial-table thead th {
+  background: var(--sky);
+  text-align: center;
+  font-weight: 800;
+}
+
+.financial-table th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 148px;
+  border-right: 2px solid #0f172a;
+  background: #f4f8fb;
+  text-align: left;
+}
+
+.financial-table thead th:first-child {
+  z-index: 3;
+  background: var(--sky);
+  text-align: center;
+}
+
+.financial-table tbody tr:nth-child(1) th,
+.financial-table tbody tr:nth-child(3) th,
+.financial-table tbody tr:nth-child(5) th,
+.financial-table tbody tr:nth-child(1) td,
+.financial-table tbody tr:nth-child(3) td,
+.financial-table tbody tr:nth-child(5) td {
+  background: var(--peach);
+  font-weight: 800;
+}
+
+.financial-table td {
+  text-align: right;
+}
+
+.financial-table .missing {
+  color: #94a3b8;
+  text-align: center;
+}
+
+.negative {
+  color: var(--blue);
+}
+
+.positive {
+  color: var(--red);
+}
+
+.chart-frame {
+  height: 430px;
+  margin: 18px 20px 0;
+  border: 2px solid #ef4444;
+  background: #fff;
+  padding: 12px;
+}
+
+#financialChart {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 900px) {
+  body {
+    min-width: 0;
+  }
+
+  .hero__content,
+  .workspace {
+    width: calc(100% - 20px);
+  }
+
+  .brand h1 {
+    font-size: 30px;
+  }
+
+  .brand__logo {
+    width: 90px;
+    height: 60px;
+  }
+
+  .search-panel {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .ticker-strip {
+    grid-template-columns: 92px 1fr;
+  }
+
+  .ticker-cell--status {
+    grid-column: 1 / -1;
+    min-height: 34px;
+    border-top: 1px solid #0f172a;
+  }
+
+  .chart-frame {
+    height: 360px;
+    margin: 12px 8px 0;
+  }
+}

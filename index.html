@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Subtle Leopard - One Precise Strike</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero__image" aria-hidden="true"></div>
+      <div class="hero__content">
+        <div class="brand">
+          <img class="brand__logo" src="./leopard.jpg" alt="The Subtle Leopard 로고" />
+          <div>
+            <p class="brand__eyebrow">Korean Equity Analyzer</p>
+            <h1>The Subtle Leopard</h1>
+            <p class="brand__tagline">One Precise Strike</p>
+          </div>
+        </div>
+        <form id="searchForm" class="search-panel">
+          <label class="field field--stock">
+            <span>종목코드</span>
+            <input id="stockCodeInput" type="text" inputmode="numeric" maxlength="6" value="001680" placeholder="예: 001680" />
+          </label>
+          <label class="field field--select">
+            <span>재무제표 구분</span>
+            <select id="fsModeInput">
+              <option value="AUTO">자동</option>
+              <option value="CFS">연결</option>
+              <option value="OFS">개별</option>
+            </select>
+          </label>
+          <label class="field field--key">
+            <span>OpenDART API Key</span>
+            <input id="apiKeyInput" type="password" autocomplete="off" placeholder="API Key를 입력하세요" />
+          </label>
+          <button type="submit">조회</button>
+        </form>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="ticker-strip" aria-label="종목 요약">
+        <div class="ticker-cell ticker-cell--label">종목명</div>
+        <div id="companyName" class="ticker-cell ticker-cell--value">대상</div>
+        <div class="ticker-cell ticker-cell--label">종목코드</div>
+        <div id="companyCode" class="ticker-cell ticker-cell--code">001680</div>
+        <div id="statusText" class="ticker-cell ticker-cell--status">API Key를 입력한 뒤 조회하세요.</div>
+      </section>
+
+      <section class="sheet-section">
+        <div class="section-bar">
+          <h2>재무상태표</h2>
+          <span id="unitLabel">단위: 억원</span>
+        </div>
+        <div class="table-wrap">
+          <table id="financialTable" class="financial-table">
+            <thead>
+              <tr>
+                <th>항목</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>매출액</th>
+              </tr>
+              <tr>
+                <th>증가율(YoY)</th>
+              </tr>
+              <tr>
+                <th>영업이익</th>
+              </tr>
+              <tr>
+                <th>증가율(YoY)</th>
+              </tr>
+              <tr>
+                <th>지배주주순이익</th>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chart-section">
+        <div class="section-bar section-bar--chart">
+          <h2>분기별 콤보 차트</h2>
+          <span>영업이익 막대 / 매출액, 지배주주순이익 꺾은선</span>
+        </div>
+        <div class="chart-frame">
+          <canvas id="financialChart"></canvas>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
